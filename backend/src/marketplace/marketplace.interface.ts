@@ -15,7 +15,7 @@ export interface MarketplaceProduct {
 export interface IAffiliateMarketplaceConnector {
     marketplaceId: string;
     authenticate(credentials: any): Promise<boolean>;
-    importProductByUrl(url: string): Promise<MarketplaceProduct>;
+    searchProducts(query: string, credentials: any): Promise<MarketplaceProduct[]>;
     generateAffiliateLink(url: string, affiliateId: string, subIds?: string[]): Promise<string>;
     detectMarketplace(url: string): boolean;
 }

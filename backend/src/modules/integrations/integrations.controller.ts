@@ -18,4 +18,9 @@ export class IntegrationsController {
     findAll(@Query('tenantId') tenantId: string) {
         return this.integrationsService.findAll(tenantId);
     }
+
+    @Post('validate')
+    validate(@Body() dto: CreateIntegrationDto) {
+        return this.integrationsService.validate(dto);
+    }
 }

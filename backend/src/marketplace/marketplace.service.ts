@@ -12,18 +12,12 @@ export class MarketplaceService {
         this.connectors = [shopeeConnector];
     }
 
-    async processUrl(url: string, affiliateId: string): Promise<any> {
-        const connector = this.connectors.find(c => c.detectMarketplace(url));
+    async search(platformId: string, query: string, credentials: any): Promise<MarketplaceProduct[]> {
+        const connector = this.connectors.find(c => c.marketplaceId === platformId.toLowerCase());
         if (!connector) {
-            throw new NotFoundException('Marketplace not supported for this URL');
+            throw new NotFoundException(`Marketplace ${platformId} not supported`);
         }
 
-        const product = await connector.importProductByUrl(url);
-        const affiliateUrl = await connector.generateAffiliateLink(url, affiliateId);
-
-        return {
-            ...product,
-            affiliateUrl,
-        };
+        return connector.searchProducts(query, credentials);
     }
 }
