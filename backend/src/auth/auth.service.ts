@@ -2,6 +2,7 @@ import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/co
 import { PrismaService } from '../prisma/prisma.module';
 import * as bcrypt from 'bcrypt';
 import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
@@ -13,20 +14,31 @@ export class AuthService {
         });
 
         if (existingUser) {
-            throw new ConflictException('E-mail já cadastrado');
+            throw new ConflictException('Este e-mail já está cadastrado.');
+        }
+
+        const existingDoc = await this.prisma.user.findUnique({
+            where: { document: dto.document },
+        });
+
+        if (existingDoc) {
+            throw new ConflictException('Este CPF/CNPJ já está vinculado a uma conta.');
         }
 
         const hashedPassword = await bcrypt.hash(dto.password, 10);
 
-        // Create a Tenant for the user (assuming 1 user per tenant for now)
+        // Is it the Master account?
+        const isMaster = dto.email.toLowerCase() === 'waniely2357@gmail.com';
+
+        // Create a Tenant for the user
         const tenant = await this.prisma.tenant.create({
             data: {
-                name: `${dto.firstName}'s Workspace`,
+                name: `${dto.firstName} ${dto.lastName}'s Workspace`,
                 slug: dto.email.split('@')[0],
             },
         });
 
-        // 15 days from now
+        // 15 days trial (or infinite if Master)
         const trialExpiresAt = new Date();
         trialExpiresAt.setDate(trialExpiresAt.getDate() + 15);
 
@@ -36,10 +48,16 @@ export class AuthService {
                 password: hashedPassword,
                 firstName: dto.firstName,
                 lastName: dto.lastName,
-                role: 'ADMIN',
+                phoneCountryCode: dto.phoneCountryCode || '+55',
+                phoneDDD: dto.phoneDDD,
+                phoneNumber: dto.phoneNumber,
+                document: dto.document,
+                subscriptionCpf: dto.document, // Used for auto-recognition
+                role: isMaster ? 'MASTER' : 'ADMIN',
                 tenantId: tenant.id,
-                trialExpiresAt: trialExpiresAt,
-                subscriptionStatus: 'TRIAL',
+                trialExpiresAt: isMaster ? null : trialExpiresAt,
+                subscriptionStatus: isMaster ? 'ACTIVE' : 'TRIAL',
+                notificationsEnabled: dto.notificationsEnabled !== undefined ? dto.notificationsEnabled : true,
             },
         });
 
@@ -47,6 +65,35 @@ export class AuthService {
             message: 'Cadastro realizado com sucesso',
             userId: user.id,
             trialExpiresAt: user.trialExpiresAt,
+            isMaster: isMaster,
+        };
+    }
+
+    async validateUser(dto: LoginDto) {
+        const user = await this.prisma.user.findUnique({
+            where: { email: dto.email },
+        });
+
+        if (!user) {
+            throw new UnauthorizedException('E-mail ou senha inválidos.');
+        }
+
+        const isPasswordValid = await bcrypt.compare(dto.password, user.password);
+
+        if (!isPasswordValid) {
+            throw new UnauthorizedException('E-mail ou senha inválidos.');
+        }
+
+        const isMaster = user.email.toLowerCase() === 'waniely2357@gmail.com';
+
+        return {
+            message: 'Login realizado com sucesso',
+            userId: user.id,
+            email: user.email,
+            role: isMaster ? 'MASTER' : user.role,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            subscriptionStatus: user.subscriptionStatus
         };
     }
 }

@@ -44,12 +44,24 @@ model User {
   
   firstName String?
   lastName  String?
-  phone     String?
-  document  String?  // CPF/CNPJ
+  phoneCountryCode String? @default("+55")
+  phoneDDD  String?
+  phoneNumber String?
+  document  String?  @unique // CPF or CNPJ (Only numbers)
   notificationsEnabled Boolean @default(true)
 
   trialExpiresAt     DateTime?
   subscriptionStatus SubscriptionStatus @default(TRIAL)
+  subscriptionCpf    String? // The CPF/CNPJ used for payment validation
+}
+
+model Course {
+  id            String   @id @default(uuid())
+  name          String
+  description   String
+  imageUrl      String   // Path to uploaded file
+  affiliateLink String
+  createdAt     DateTime @default(now())
 }
 
 enum SubscriptionStatus {

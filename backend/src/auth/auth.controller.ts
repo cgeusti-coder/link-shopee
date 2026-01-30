@@ -14,14 +14,6 @@ export class AuthController {
 
     @Post('login')
     async login(@Body() dto: LoginDto) {
-        // Basic login simulation for now
-        // In a real app, this would return a JWT
-        return {
-            message: 'Login realizado com sucesso',
-            user: {
-                email: dto.email,
-                role: 'ADMIN'
-            }
-        };
+        return this.authService.validateUser(dto);
     }
 }
