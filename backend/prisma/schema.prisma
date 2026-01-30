@@ -39,6 +39,12 @@ model User {
   tenantId  String
   tenant    Tenant   @relation(fields: [tenantId], references: [id])
   createdAt DateTime @default(now())
+  
+  firstName String?
+  lastName  String?
+  phone     String?
+  document  String?  // CPF/CNPJ
+  notificationsEnabled Boolean @default(true)
 }
 
 enum Role {

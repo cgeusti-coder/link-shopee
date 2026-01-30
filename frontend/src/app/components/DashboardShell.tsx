@@ -37,8 +37,7 @@ const menuItems: MenuItem[] = [
     { icon: MessageCircle, label: "Config. WhatsApp", href: "/config/whatsapp" },
     { icon: Users, label: "Canais/Grupos", href: "/canais-grupos" },
     { icon: Package, label: "Migração de Produtos", href: "/produtos/migracao" },
-    { icon: LinkIcon, label: "Meus Links", href: "/links" },
-    { icon: BookOpen, label: "Vídeos", href: "/videos" },
+    { icon: Settings, label: "Meus Dados", href: "/config/meus_dados" },
     { icon: ShoppingBag, label: "Assinatura", href: "/config/assinatura" },
     { icon: HelpCircle, label: "Ajuda", href: "/ajuda" },
 ];

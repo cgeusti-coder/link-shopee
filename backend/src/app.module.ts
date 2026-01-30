@@ -6,6 +6,7 @@ import { ProductsModule } from './products/products.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { MessagingModule } from './messaging/messaging.module';
 import { IntegrationsModule } from './modules/integrations/integrations.module';
+import { ProfileModule } from './modules/profile/profile.module';
 
 @Module({
     imports: [
@@ -16,6 +17,7 @@ import { IntegrationsModule } from './modules/integrations/integrations.module';
         AutomationModule,
         MessagingModule,
         IntegrationsModule,
+        ProfileModule,
     ],
 })
 export class AppModule { }
