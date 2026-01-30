@@ -86,7 +86,7 @@ export class IntegrationsService {
             }, {
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `sha256 ${appId}:${timestamp}:${signature}`
+                    'Authorization': `SHA256 ${appId}:${timestamp}:${signature}`
                 },
                 timeout: 10000
             });
