@@ -47,7 +47,7 @@ model User {
   phoneCountryCode String? @default("+55")
   phoneDDD  String?
   phoneNumber String?
-  document  String?  @unique // CPF or CNPJ (Only numbers)
+  document  String? // CPF or CNPJ (Only numbers)
   notificationsEnabled Boolean @default(true)
 
   trialExpiresAt     DateTime?

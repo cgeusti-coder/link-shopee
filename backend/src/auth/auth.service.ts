@@ -17,18 +17,15 @@ export class AuthService {
             throw new ConflictException('Este e-mail já está cadastrado.');
         }
 
-        const existingDoc = await this.prisma.user.findUnique({
-            where: { document: dto.document },
-        });
-
-        if (existingDoc) {
-            throw new ConflictException('Este CPF/CNPJ já está vinculado a uma conta.');
-        }
-
         const hashedPassword = await bcrypt.hash(dto.password, 10);
 
         // Is it the Master account?
         const isMaster = dto.email.toLowerCase() === 'waniely2357@gmail.com';
+
+        // Check if this CPF has already used a trial
+        const previousTrial = await this.prisma.user.findFirst({
+            where: { document: dto.document },
+        });
 
         // Create a Tenant for the user
         const tenant = await this.prisma.tenant.create({
@@ -38,9 +35,18 @@ export class AuthService {
             },
         });
 
-        // 15 days trial (or infinite if Master)
-        const trialExpiresAt = new Date();
-        trialExpiresAt.setDate(trialExpiresAt.getDate() + 15);
+        // 15 days trial (or infinite if Master, or 0 if trial already used)
+        let trialExpiresAt = null;
+        let subscriptionStatus: any = 'TRIAL';
+
+        if (isMaster) {
+            subscriptionStatus = 'ACTIVE';
+        } else if (previousTrial) {
+            subscriptionStatus = 'EXPIRED'; // Early block for trial abusers
+        } else {
+            trialExpiresAt = new Date();
+            trialExpiresAt.setDate(trialExpiresAt.getDate() + 15);
+        }
 
         const user = await this.prisma.user.create({
             data: {
@@ -52,11 +58,11 @@ export class AuthService {
                 phoneDDD: dto.phoneDDD,
                 phoneNumber: dto.phoneNumber,
                 document: dto.document,
-                subscriptionCpf: dto.document, // Used for auto-recognition
+                subscriptionCpf: dto.document,
                 role: isMaster ? 'MASTER' : 'ADMIN',
                 tenantId: tenant.id,
-                trialExpiresAt: isMaster ? null : trialExpiresAt,
-                subscriptionStatus: isMaster ? 'ACTIVE' : 'TRIAL',
+                trialExpiresAt: trialExpiresAt,
+                subscriptionStatus: subscriptionStatus,
                 notificationsEnabled: dto.notificationsEnabled !== undefined ? dto.notificationsEnabled : true,
             },
         });
@@ -66,6 +72,7 @@ export class AuthService {
             userId: user.id,
             trialExpiresAt: user.trialExpiresAt,
             isMaster: isMaster,
+            trialAlreadyUsed: !!previousTrial && !isMaster
         };
     }
 
