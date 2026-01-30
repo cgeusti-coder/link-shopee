@@ -55,6 +55,7 @@ model AffiliateCredential {
   affiliateId   String   // The tag or ID
   apiKey        String?
   apiSecret     String?
+  appKey        String?  // New field for Shopee App Key
   tenantId      String
   tenant        Tenant   @relation(fields: [tenantId], references: [id])
 }

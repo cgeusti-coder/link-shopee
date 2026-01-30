@@ -16,8 +16,9 @@ export default function IntegrationModal({ platform, isOpen, onClose, onSuccess 
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         affiliateId: "",
-        apiKey: "",
-        apiSecret: "",
+        apiKey: "", // Partner ID
+        apiSecret: "", // App Secret
+        appKey: "", // App Key
     });
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -84,7 +85,7 @@ export default function IntegrationModal({ platform, isOpen, onClose, onSuccess 
                     {platform === 'SHOPEE' && (
                         <>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">AppID</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Partner ID (AppID)</label>
                                 <input
                                     type="text"
                                     required
@@ -95,11 +96,22 @@ export default function IntegrationModal({ platform, isOpen, onClose, onSuccess 
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">API Secret (Senha)</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">App Key</label>
+                                <input
+                                    type="text"
+                                    required
+                                    placeholder="Seu App Key"
+                                    className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-coral/20 focus:border-coral outline-none transition-all"
+                                    value={formData.appKey}
+                                    onChange={(e) => setFormData({ ...formData, appKey: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">App Secret</label>
                                 <input
                                     type="password"
                                     required
-                                    placeholder="Sua senha da API"
+                                    placeholder="Seu App Secret"
                                     className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-coral/20 focus:border-coral outline-none transition-all"
                                     value={formData.apiSecret}
                                     onChange={(e) => setFormData({ ...formData, apiSecret: e.target.value })}

@@ -13,7 +13,6 @@ export class ShopeeConnector implements IAffiliateMarketplaceConnector {
     }
 
     async importProductByUrl(url: string): Promise<MarketplaceProduct> {
-        // Logic to scrape or use Shopee API to fetch product details
         return {
             externalId: 'shopee_123',
             name: 'Produto Exemplo Shopee',
@@ -27,40 +26,23 @@ export class ShopeeConnector implements IAffiliateMarketplaceConnector {
     }
 
     async searchProducts(query: string, credentials: any): Promise<MarketplaceProduct[]> {
-        const appId = credentials.apiKey;
-        const appSecret = credentials.apiSecret;
-        const timestamp = Math.floor(Date.now() / 1000);
-
-        // Calculate Signature
-        const signature = crypto
-            .createHmac('sha256', appSecret)
-            .update(appId + timestamp)
-            .digest('hex');
-
         try {
-            // Real Shopee BR GraphQL Affiliate Query (getOfferList)
-            const response = await axios.post('https://open-api.affiliate.shopee.com.br/graphql', {
-                query: `
-                    query($keyword: String) {
-                        getOfferList(keyword: $keyword, limit: 12) {
-                            nodes {
-                                itemId
-                                productName
-                                price
-                                imageUrl
-                                offerLink
-                            }
+            const graphQLQuery = `
+                query($keyword: String) {
+                    getOfferList(keyword: $keyword, limit: 12) {
+                        nodes {
+                            itemId
+                            productName
+                            price
+                            imageUrl
+                            offerLink
                         }
                     }
-                `,
-                variables: { keyword: query }
-            }, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `sha256 ${appId}:${timestamp}:${signature}`
-                },
-                timeout: 5000
-            });
+                }
+            `;
+            const variables = { keyword: query };
+
+            const response = await this.callShopeeGraphQL(graphQLQuery, variables, credentials);
 
             const products = response.data?.data?.getOfferList?.nodes || [];
             return products.map(p => ({
@@ -74,16 +56,16 @@ export class ShopeeConnector implements IAffiliateMarketplaceConnector {
                 metadata: {}
             }));
         } catch (error) {
-            console.error('Shopee Search API failed, using fallback mock data:', error.message);
-            // Fallback for demo/dev purposes if credentials are not yet whitelisted for search
+            console.error('Shopee Search API failed:', error.message);
+            // Fallback for demo
             return [
                 {
-                    externalId: 'shopee_001',
-                    name: `${query} Premium Edition (API Demo)`,
-                    price: 59.90,
+                    externalId: 'shopee_demo_1',
+                    name: `${query} (Link Demo)`,
+                    price: 49.90,
                     currency: 'BRL',
                     imageUrl: 'https://cf.shopee.com.br/file/br-50009109-7b786c52a5c5f463c6d48378546b2e3e',
-                    originalUrl: 'https://shopee.com.br/product-001',
+                    originalUrl: 'https://shopee.com.br/',
                     availability: true,
                     metadata: {}
                 }
@@ -91,34 +73,47 @@ export class ShopeeConnector implements IAffiliateMarketplaceConnector {
         }
     }
 
-    async generateAffiliateLink(url: string, affiliateId: string, subIds?: string[]): Promise<string> {
-        // In a real implementation, we'd need to fetch the user's credentials from the DB
-        // For now, if we don't have them in the context, we'll return a basic structure
-        // But the logic is here for when the full flow is active.
+    async generateAffiliateLink(url: string, affiliateId: string, credentials?: any): Promise<string> {
+        if (!credentials || !credentials.apiSecret) {
+            return `https://shope.ee/m/link-gerado?aff_id=${affiliateId}`;
+        }
 
-        // This is a placeholder for the real logic that fetches credentials based on tenantId
-        // In this architecture, generateAffiliateLink will be called with credentials in more advanced phases
-        console.log(`Generating official Shopee link for ${url}`);
-
-        return `https://shope.ee/m/link-gerado?aff_id=${affiliateId}`;
+        try {
+            const query = `
+                query($url: String!) {
+                    getShortLink(url: $url) {
+                        shortLink
+                    }
+                }
+            `;
+            const variables = { url };
+            const response = await this.callShopeeGraphQL(query, variables, credentials);
+            return response.data?.data?.getShortLink?.shortLink || `https://shope.ee/m/link-gerado?aff_id=${affiliateId}`;
+        } catch (error) {
+            return `https://shope.ee/m/link-gerado?aff_id=${affiliateId}`;
+        }
     }
 
-    // Adding a private method to handle the GraphQL calls with auth
     private async callShopeeGraphQL(query: string, variables: any, credentials: any) {
         const appId = credentials.apiKey;
+        const appKey = credentials.appKey || appId;
         const appSecret = credentials.apiSecret;
         const timestamp = Math.floor(Date.now() / 1000);
+
+        const body = JSON.stringify({ query, variables });
+
+        // Shopee Affiliate Signature: HMAC-SHA256(app_key + timestamp + body, secret)
         const signature = crypto
             .createHmac('sha256', appSecret)
-            .update(appId + timestamp)
+            .update(appKey + timestamp + body)
             .digest('hex');
 
         return axios.post('https://open-api.affiliate.shopee.com.br/graphql',
-            { query, variables },
+            body,
             {
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `sha256 ${appId}:${timestamp}:${signature}`
+                    'Authorization': `SHA256 ${appKey}:${timestamp}:${signature}`
                 },
                 timeout: 5000
             }

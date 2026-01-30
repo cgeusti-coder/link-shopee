@@ -29,6 +29,7 @@ export class IntegrationsService {
                     affiliateId: dto.affiliateId,
                     apiKey: dto.apiKey,
                     apiSecret: dto.apiSecret,
+                    appKey: dto.appKey,
                 }
             });
         }
@@ -40,6 +41,7 @@ export class IntegrationsService {
                 affiliateId: dto.affiliateId,
                 apiKey: dto.apiKey,
                 apiSecret: dto.apiSecret,
+                appKey: dto.appKey,
             }
         });
     }
@@ -69,11 +71,16 @@ export class IntegrationsService {
         }
 
         const appId = dto.apiKey;
+        const appKey = dto.appKey || appId; // Fallback to appId if appKey not provided
         const appSecret = dto.apiSecret;
         const timestamp = Math.floor(Date.now() / 1000);
 
-        // Shopee GraphQL API Signature logic: HMAC-SHA256(app_id + timestamp, secret)
-        const baseString = appId + timestamp;
+        const body = JSON.stringify({
+            query: `query { getOfferList(limit: 1) { nodes { itemId } } }`
+        });
+
+        // Shopee Affiliate Signature: HMAC-SHA256(app_key + timestamp + body, secret)
+        const baseString = appKey + timestamp + body;
         const signature = crypto
             .createHmac('sha256', appSecret)
             .update(baseString)
@@ -81,12 +88,10 @@ export class IntegrationsService {
 
         try {
             // Official GraphQL Endpoint for Brazil
-            const response = await axios.post('https://open-api.affiliate.shopee.com.br/graphql', {
-                query: `query { getOfferList(limit: 1) { nodes { itemId } } }`
-            }, {
+            const response = await axios.post('https://open-api.affiliate.shopee.com.br/graphql', body, {
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `SHA256 ${appId}:${timestamp}:${signature}`
+                    'Authorization': `SHA256 ${appKey}:${timestamp}:${signature}`
                 },
                 timeout: 10000
             });
