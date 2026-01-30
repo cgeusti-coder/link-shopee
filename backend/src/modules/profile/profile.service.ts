@@ -14,7 +14,9 @@ export class ProfileService {
                 email: true,
                 firstName: true,
                 lastName: true,
-                phone: true,
+                phoneCountryCode: true,
+                phoneDDD: true,
+                phoneNumber: true,
                 document: true,
                 notificationsEnabled: true,
             },
@@ -33,7 +35,9 @@ export class ProfileService {
             data: {
                 firstName: dto.firstName,
                 lastName: dto.lastName,
-                phone: dto.phoneMain || dto.phoneNumber, // Simplified for now
+                phoneCountryCode: dto.phoneCountryCode,
+                phoneDDD: dto.phoneDDD,
+                phoneNumber: dto.phoneNumber,
                 document: dto.document,
                 notificationsEnabled: dto.notificationsEnabled,
             },
