@@ -86,13 +86,13 @@ export class IntegrationsService {
             .digest('hex');
 
         try {
-            // Official GraphQL Endpoint for Brazil/Global
-            const response = await axios.post('https://open-api.shopee.com/api/v1/graphql', {
-                query: `query { echo(message: "validate") }`
+            // Official GraphQL Endpoint for Brazil
+            const response = await axios.post('https://open-api.affiliate.shopee.com.br/graphql', {
+                query: `query { getOfferList(limit: 1) { nodes { itemId } } }`
             }, {
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `SHA256 ${appId}:${timestamp}:${signature}`
+                    'Authorization': `sha256 ${appId}:${timestamp}:${signature}`
                 },
                 timeout: 10000
             });

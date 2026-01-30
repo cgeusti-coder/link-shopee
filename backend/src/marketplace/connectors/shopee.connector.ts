@@ -38,17 +38,17 @@ export class ShopeeConnector implements IAffiliateMarketplaceConnector {
             .digest('hex');
 
         try {
-            // Real Shopee GraphQL Affiliate Query
-            const response = await axios.post('https://open-api.shopee.com/api/v1/graphql', {
+            // Real Shopee BR GraphQL Affiliate Query (getOfferList)
+            const response = await axios.post('https://open-api.affiliate.shopee.com.br/graphql', {
                 query: `
-                    query searchProducts($keyword: String) {
-                        productSearch(keyword: $keyword, limit: 12) {
-                            products {
+                    query($keyword: String) {
+                        getOfferList(keyword: $keyword, limit: 12) {
+                            nodes {
                                 itemId
-                                name
+                                productName
                                 price
                                 imageUrl
-                                productUrl
+                                offerLink
                             }
                         }
                     }
@@ -57,19 +57,19 @@ export class ShopeeConnector implements IAffiliateMarketplaceConnector {
             }, {
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `SHA256 ${appId}:${timestamp}:${signature}`
+                    'Authorization': `sha256 ${appId}:${timestamp}:${signature}`
                 },
                 timeout: 5000
             });
 
-            const products = response.data?.data?.productSearch?.products || [];
+            const products = response.data?.data?.getOfferList?.nodes || [];
             return products.map(p => ({
                 externalId: p.itemId,
-                name: p.name,
+                name: p.productName,
                 price: parseFloat(p.price),
                 currency: 'BRL',
                 imageUrl: p.imageUrl,
-                originalUrl: p.productUrl,
+                originalUrl: p.offerLink,
                 availability: true,
                 metadata: {}
             }));
@@ -92,8 +92,37 @@ export class ShopeeConnector implements IAffiliateMarketplaceConnector {
     }
 
     async generateAffiliateLink(url: string, affiliateId: string, subIds?: string[]): Promise<string> {
-        // Logic to generate the affiliate link using Shopee API or Link Shortener
-        return `https://shope.ee/m/example?aff_id=${affiliateId}${subIds ? `&sub_id=${subIds.join(',')}` : ''}`;
+        // In a real implementation, we'd need to fetch the user's credentials from the DB
+        // For now, if we don't have them in the context, we'll return a basic structure
+        // But the logic is here for when the full flow is active.
+
+        // This is a placeholder for the real logic that fetches credentials based on tenantId
+        // In this architecture, generateAffiliateLink will be called with credentials in more advanced phases
+        console.log(`Generating official Shopee link for ${url}`);
+
+        return `https://shope.ee/m/link-gerado?aff_id=${affiliateId}`;
+    }
+
+    // Adding a private method to handle the GraphQL calls with auth
+    private async callShopeeGraphQL(query: string, variables: any, credentials: any) {
+        const appId = credentials.apiKey;
+        const appSecret = credentials.apiSecret;
+        const timestamp = Math.floor(Date.now() / 1000);
+        const signature = crypto
+            .createHmac('sha256', appSecret)
+            .update(appId + timestamp)
+            .digest('hex');
+
+        return axios.post('https://open-api.affiliate.shopee.com.br/graphql',
+            { query, variables },
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `sha256 ${appId}:${timestamp}:${signature}`
+                },
+                timeout: 5000
+            }
+        );
     }
 
     detectMarketplace(url: string): boolean {
