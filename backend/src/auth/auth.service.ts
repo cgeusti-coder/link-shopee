@@ -71,19 +71,26 @@ export class AuthService {
     }
 
     async validateUser(dto: LoginDto) {
+        const email = dto.email.toLowerCase();
+        console.log(`[AuthService] Attempting login for: ${email}`);
+
         const user = await this.prisma.user.findUnique({
-            where: { email: dto.email },
+            where: { email },
         });
 
         if (!user) {
+            console.log(`[AuthService] User not found: ${email}`);
             throw new UnauthorizedException('E-mail ou senha inválidos.');
         }
 
         const isPasswordValid = await bcrypt.compare(dto.password, user.password);
 
         if (!isPasswordValid) {
+            console.log(`[AuthService] Password mismatch for: ${email}`);
             throw new UnauthorizedException('E-mail ou senha inválidos.');
         }
+
+        console.log(`[AuthService] Login successful for: ${email}, Role: ${user.role}`);
 
         // Generate JWT Token
         const payload = {
