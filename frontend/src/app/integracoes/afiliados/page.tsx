@@ -5,6 +5,7 @@ import DashboardShell from "@/app/components/DashboardShell";
 import { Plug, CheckCircle2, Search } from "lucide-react";
 import IntegrationModal from "@/app/components/IntegrationModal";
 import { PLATFORMS } from "@/app/config/platforms";
+import { API_URL } from "@/app/config/api";
 
 export default function IntegrationsPage() {
   const [modalOpen, setModalOpen] = useState(false);
@@ -22,6 +23,25 @@ export default function IntegrationsPage() {
   };
 
   const isConnected = (platformId: string) => connectedPlatforms.includes(platformId);
+
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    const fetchIntegrations = async () => {
+      try {
+        const response = await fetch(`${API_URL}/integrations?tenantId=default-tenant`);
+        if (response.ok) {
+          const data = await response.json();
+          setConnectedPlatforms(data.map((i: any) => i.marketplace));
+        }
+      } catch (error) {
+        console.error("Failed to fetch integrations:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchIntegrations();
+  }, []);
 
   const filteredPlatforms = PLATFORMS.filter(p =>
     p.name.toLowerCase().includes(searchTerm.toLowerCase())

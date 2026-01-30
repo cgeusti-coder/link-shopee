@@ -44,12 +44,6 @@ export class IntegrationsService {
         });
     }
 
-    async findAll(tenantId: string) {
-        return this.prisma.affiliateCredential.findMany({
-            where: { tenantId },
-        });
-    }
-
     async validate(dto: CreateIntegrationDto) {
         this.logger.log(`Validating credentials for ${dto.platform}`);
 
@@ -97,30 +91,39 @@ export class IntegrationsService {
                 timeout: 10000
             });
 
+            // GraphQL usually returns 200 even for logic/auth errors
+            if (response.data?.errors && response.data.errors.length > 0) {
+                const graphQLError = response.data.errors[0];
+                this.logger.error(`Shopee GraphQL Error details: ${JSON.stringify(graphQLError)}`);
+
+                // Specific check for code 10020 (Signature error)
+                if (graphQLError.extensions?.code === 10020 || graphQLError.message?.includes('10020')) {
+                    throw new Error('Erro de Assinatura (10020): Verifique se o AppID e a Senha estão corretos e sem espaços.');
+                }
+
+                throw new Error(graphQLError.message || 'Erro na API da Shopee');
+            }
+
             return {
                 success: true,
                 message: 'Conexão com Shopee (GraphQL) validada com sucesso!',
                 details: { appId, timestamp }
             };
         } catch (error: any) {
-            this.logger.error(`Shopee GraphQL Validation failed: ${error.response?.data || error.message}`);
+            this.logger.error(`Shopee Connection failed: ${error.message}`);
 
-            // Credential errors usually return 401/403
-            if (error.response?.status === 401 || error.response?.status === 403) {
-                throw new BadRequestException('Credenciais da Shopee inválidas ou sem permissão de API.');
+            if (error.response) {
+                this.logger.error(`Response Data: ${JSON.stringify(error.response.data)}`);
             }
 
-            // If the error is 400 (Bad Request) but we reached the API, it means the signature was accepted
-            // because otherwise we would have gotten a 401 Unauthorized.
-            if (error.response?.status === 400) {
-                return {
-                    success: true,
-                    message: 'Credenciais válidas! Conexão estabelecida com a Shopee.',
-                    details: { appId }
-                };
-            }
-
-            throw new BadRequestException(`Erro na comunicação com a Shopee: ${error.message}`);
+            // Expose the descriptive error to the frontend
+            throw new BadRequestException(error.message || 'Falha na comunicação com a Shopee');
         }
+    }
+
+    async findAll(tenantId: string) {
+        return this.prisma.affiliateCredential.findMany({
+            where: { tenantId }
+        });
     }
 }

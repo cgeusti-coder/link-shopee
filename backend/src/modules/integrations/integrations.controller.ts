@@ -19,6 +19,11 @@ export class IntegrationsController {
         return this.integrationsService.findAll(tenantId);
     }
 
+    @Get('health')
+    health() {
+        return { status: 'ok', timestamp: new Date().toISOString() };
+    }
+
     @Post('validate')
     validate(@Body() dto: CreateIntegrationDto) {
         return this.integrationsService.validate(dto);
