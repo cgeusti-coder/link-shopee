@@ -78,7 +78,8 @@ export const PLATFORMS: PlatformConfig[] = [
         color: '#000000',
         bgColor: 'bg-black/5',
         textColor: 'text-black',
-        icon: SheinLogo
+        icon: SheinLogo,
+        logo: '/logos/shein.jpg'
     },
     {
         id: 'CASAS_BAHIA',
@@ -87,7 +88,8 @@ export const PLATFORMS: PlatformConfig[] = [
         color: '#003399',
         bgColor: 'bg-[#003399]/10',
         textColor: 'text-[#003399]',
-        icon: CasasBahiaLogo
+        icon: CasasBahiaLogo,
+        logo: '/logos/casasbahia.png'
     },
     {
         id: 'EXTRA',
@@ -96,7 +98,8 @@ export const PLATFORMS: PlatformConfig[] = [
         color: '#E3004F',
         bgColor: 'bg-[#E3004F]/10',
         textColor: 'text-[#E3004F]',
-        icon: DefaultStoreLogo
+        icon: DefaultStoreLogo,
+        logo: '/logos/extra.png'
     },
     {
         id: 'PONTO',
@@ -105,7 +108,8 @@ export const PLATFORMS: PlatformConfig[] = [
         color: '#FFCB05',
         bgColor: 'bg-[#FFCB05]/20',
         textColor: 'text-yellow-800',
-        icon: DefaultStoreLogo
+        icon: DefaultStoreLogo,
+        logo: '/logos/pontofrio.png'
     },
     {
         id: 'NATURA',
@@ -114,7 +118,8 @@ export const PLATFORMS: PlatformConfig[] = [
         color: '#F47920',
         bgColor: 'bg-[#F47920]/10',
         textColor: 'text-[#F47920]',
-        icon: DefaultStoreLogo
+        icon: DefaultStoreLogo,
+        logo: '/logos/natura.png'
     }
 ];
 
