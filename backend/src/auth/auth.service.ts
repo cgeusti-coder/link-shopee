@@ -77,20 +77,27 @@ export class AuthService {
     }
 
     async validateUser(dto: LoginDto) {
+        console.log(`[AUTH] Tentativa de login para: ${dto.email}`);
+
         const user = await this.prisma.user.findUnique({
             where: { email: dto.email },
         });
 
         if (!user) {
+            console.log(`[AUTH] Usuário não encontrado: ${dto.email}`);
             throw new UnauthorizedException('E-mail ou senha inválidos.');
         }
 
+        console.log(`[AUTH] Usuário encontrado. Comparando senhas...`);
         const isPasswordValid = await bcrypt.compare(dto.password, user.password);
 
         if (!isPasswordValid) {
+            console.log(`[AUTH] Senha inválida para: ${dto.email}`);
+            // console.log(`DEBUG: Senha digitada: ${dto.password}`); // CUIDADO: Apenas para debug temporário se necessário
             throw new UnauthorizedException('E-mail ou senha inválidos.');
         }
 
+        console.log(`[AUTH] Login bem-sucedido: ${dto.email}`);
         const isMaster = user.email.toLowerCase() === 'waniely2357@gmail.com';
 
         return {
