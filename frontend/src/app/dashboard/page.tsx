@@ -1,6 +1,6 @@
 "use client"
 
-import DashboardShell from "./components/DashboardShell";
+import DashboardShell from "@/app/components/DashboardShell";
 import {
     Users,
     MousePointer2,
