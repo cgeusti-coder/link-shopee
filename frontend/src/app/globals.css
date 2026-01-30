@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 0%;
+  --coral: 16 100% 66%;
+  /* #FF7F50 approximation */
+  --coral-foreground: 0 0% 100%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 0%;
+
+  --border: 0 0% 92%;
+  --input: 0 0% 92%;
+  --ring: 16 100% 66%;
+
+  --muted: 0 0% 96%;
+  --muted-foreground: 0 0% 45%;
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.shadow-soft {
+  box-shadow: 0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.bg-coral {
+  background-color: hsl(var(--coral));
+}
+
+.text-coral {
+  color: hsl(var(--coral));
+}
+
+.border-coral {
+  border-color: hsl(var(--coral));
+}
+
+.sidebar-item-active {
+  background-color: hsl(var(--coral) / 0.1);
+  color: hsl(var(--coral));
+  border-right: 3px solid hsl(var(--coral));
+}
