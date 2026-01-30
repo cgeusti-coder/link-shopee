@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { API_URL } from "@/app/config/api";
 
 interface IntegrationModalProps {
     platform: string; // 'SHOPEE' | 'AMAZON'
@@ -25,7 +26,7 @@ export default function IntegrationModal({ platform, isOpen, onClose, onSuccess 
 
         try {
             // Real API call to validate and save
-            const response = await fetch('http://localhost:3000/integrations/validate', {
+            const response = await fetch(`${API_URL}/integrations/validate`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -45,7 +46,7 @@ export default function IntegrationModal({ platform, isOpen, onClose, onSuccess 
 
             // If validation passed, now save it (the validate endpoint could also save, 
             // but let's follow a distinct save if needed or just assume validate/save together)
-            await fetch('http://localhost:3000/integrations', {
+            await fetch(`${API_URL}/integrations`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
