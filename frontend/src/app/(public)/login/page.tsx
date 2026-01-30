@@ -26,14 +26,18 @@ export default function LoginPage() {
                 password: formData.password
             });
 
-            // Simulating user persistence
-            localStorage.setItem("userId", response.data.userId || "default-tenant");
+            // Store Secure JWT and User Info
+            const { access_token, user } = response.data;
+            localStorage.setItem("access_token", access_token);
+            localStorage.setItem("user", JSON.stringify(user));
+            localStorage.setItem("userId", user.id); // For legacy compatibility if needed
 
             toast.success("Bem-vindo de volta!");
             router.push("/dashboard");
         } catch (error: any) {
             console.error("Erro no login:", error);
-            toast.error(error.response?.data?.message || "Erro ao realizar login. Verifique e-mail e senha.");
+            const message = error.response?.data?.message || "Erro ao realizar login. Verifique e-mail e senha.";
+            toast.error(message);
         } finally {
             setLoading(false);
         }

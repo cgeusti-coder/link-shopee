@@ -1,5 +1,6 @@
 "use client"
 
+import React, { useState, useEffect } from "react";
 import DashboardShell from "@/app/components/DashboardShell";
 import {
     Users,
@@ -24,19 +25,25 @@ const activity = [
 ];
 
 export default function Dashboard() {
+    const [user, setUser] = useState<any>(null);
+
+    useEffect(() => {
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+            setUser(JSON.parse(storedUser));
+        }
+    }, []);
+
     return (
         <DashboardShell>
             <div className="space-y-8">
                 {/* Welcome Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">Olá, Marcelo! 👋</h2>
+                        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900 font-inter">
+                            Olá, {user?.firstName || "Marcelo"}! 👋
+                        </h2>
                         <p className="text-gray-500 text-sm mt-1">Visão geral do desempenho das suas automações hoje.</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <span className="text-xs font-medium text-gray-400 bg-white px-3 py-1.5 rounded-full border border-gray-100 shadow-sm">
-                            📅 {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
-                        </span>
                     </div>
                 </div>
 
@@ -64,7 +71,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Recent Activity */}
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100/80 overflow-hidden">
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100/80 overflow-hidden font-inter">
                     <div className="p-6 border-b border-gray-50 flex items-center justify-between">
                         <h3 className="font-bold text-lg text-gray-900">Atividades Recentes</h3>
                         <button className="text-coral text-xs font-bold hover:text-coral-hover transition-colors uppercase tracking-wide">

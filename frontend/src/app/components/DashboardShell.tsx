@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     LayoutDashboard,
     Settings,
@@ -9,7 +9,6 @@ import {
     Users,
     BookOpen,
     HelpCircle,
-    Hash,
     Send,
     Menu,
     X,
@@ -17,7 +16,7 @@ import {
     Bell,
     ShoppingBag,
     Box,
-    Link as LinkIcon
+    MoreVertical
 } from "lucide-react";
 
 import { LucideIcon } from "lucide-react";
@@ -49,6 +48,23 @@ export default function DashboardShell({
     children: React.ReactNode;
 }) {
     const [isSidebarOpen, setSidebarOpen] = useState(false);
+    const [user, setUser] = useState<any>(null);
+
+    useEffect(() => {
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+            setUser(JSON.parse(storedUser));
+        }
+    }, []);
+
+    const filteredMenu = menuItems.filter(item => {
+        if (item.label === "Cursos") {
+            return user?.role === "MASTER";
+        }
+        return true;
+    });
+
+    const userInitials = user ? `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}` : "U";
 
     return (
         <div className="flex h-screen overflow-hidden">
@@ -76,7 +92,7 @@ export default function DashboardShell({
                 </div>
 
                 <nav className="flex-1 overflow-y-auto py-4 scrollbar-hide">
-                    {menuItems.map((item, idx) => (
+                    {filteredMenu.map((item, idx) => (
                         <div key={idx}>
                             {item.isHeader ? (
                                 <p className="px-6 py-4 text-[10px] font-bold text-[#BBBBBB] tracking-widest uppercase">
@@ -88,7 +104,7 @@ export default function DashboardShell({
                                     className={`flex items-center gap-3 px-6 py-3 text-sm font-medium transition-all hover:bg-[#FDFDFD] ${item.active ? "bg-coral/10 text-coral border-r-4 border-coral" : "text-[#555555] hover:text-black"
                                         }`}
                                 >
-                                    <item.icon className={`w-4 h-4 ${item.active ? "text-coral" : "text-[#888888]"}`} />
+                                    {item.icon && <item.icon className={`w-4 h-4 ${item.active ? "text-coral" : "text-[#888888]"}`} />}
                                     <span className="flex-1 text-[13px]">{item.label}</span>
                                     {item.tag && (
                                         <span className="bg-yellow-400 text-[8px] font-bold px-1.5 py-0.5 rounded text-black leading-none uppercase">
@@ -110,16 +126,6 @@ export default function DashboardShell({
                         <button className="lg:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors" onClick={() => setSidebarOpen(true)}>
                             <Menu className="w-6 h-6" />
                         </button>
-                        <div className="hidden md:flex relative w-80">
-                            <span className="absolute inset-y-0 left-3 flex items-center text-[#BBBBBB]">
-                                <Search className="w-4 h-4" />
-                            </span>
-                            <input
-                                type="text"
-                                placeholder="Pesquisar..."
-                                className="w-full bg-[#F5F5F5] border-none rounded-full pl-10 pr-4 py-2 text-xs focus:ring-1 focus:ring-coral transition-all outline-none"
-                            />
-                        </div>
                     </div>
 
                     <div className="flex items-center gap-4">
@@ -129,11 +135,11 @@ export default function DashboardShell({
                         </button>
                         <div className="flex items-center gap-3 pl-4 border-l border-[#EEEEEE]">
                             <div className="hidden sm:block text-right">
-                                <p className="text-xs font-bold leading-none">Marcelo Geusti</p>
-                                <p className="text-[10px] text-[#888888] mt-1">Administrador</p>
+                                <p className="text-xs font-bold leading-none">{user ? `${user.firstName} ${user.lastName}` : "Carregando..."}</p>
+                                <p className="text-[10px] text-[#888888] mt-1">{user?.role === 'MASTER' ? 'Administrador Master' : 'Usuário'}</p>
                             </div>
-                            <div className="w-9 h-9 rounded-full bg-coral/10 border border-coral/20 flex items-center justify-center text-coral text-xs font-bold">
-                                MG
+                            <div className="w-9 h-9 rounded-full bg-coral/10 border border-coral/20 flex items-center justify-center text-coral text-xs font-bold uppercase">
+                                {userInitials}
                             </div>
                         </div>
                     </div>

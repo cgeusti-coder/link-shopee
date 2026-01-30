@@ -1,22 +1,20 @@
-import { Controller, Get, Put, Body, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Body, Patch, UseGuards, Req } from '@nestjs/common';
 import { ProfileService } from './profile.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-import { SubscriptionGuard } from '../../auth/guards/subscription.guard';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 
 @Controller('profile')
-@UseGuards(SubscriptionGuard)
+@UseGuards(JwtAuthGuard)
 export class ProfileController {
     constructor(private readonly profileService: ProfileService) { }
 
     @Get()
-    async getProfile(@Query('userId') userId: string) {
-        // In a real app, userId would come from the JWT session.
-        // For now, we take it from the query for development.
-        return this.profileService.getProfile(userId);
+    findOne(@Req() req: any) {
+        return this.profileService.findOne(req.user.id);
     }
 
-    @Put()
-    async updateProfile(@Query('userId') userId: string, @Body() dto: UpdateProfileDto) {
-        return this.profileService.updateProfile(userId, dto);
+    @Patch()
+    update(@Body() updateProfileDto: UpdateProfileDto, @Req() req: any) {
+        return this.profileService.update(req.user.id, updateProfileDto);
     }
 }

@@ -3,10 +3,14 @@ import { PrismaService } from '../prisma/prisma.module';
 import * as bcrypt from 'bcrypt';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        private jwtService: JwtService,
+    ) { }
 
     async register(dto: RegisterDto) {
         const existingUser = await this.prisma.user.findUnique({
@@ -18,9 +22,6 @@ export class AuthService {
         }
 
         const hashedPassword = await bcrypt.hash(dto.password, 10);
-
-        // Is it the Master account?
-        const isMaster = dto.email.toLowerCase() === 'waniely2357@gmail.com';
 
         // Check if this CPF has already used a trial
         const previousTrial = await this.prisma.user.findFirst({
@@ -35,18 +36,12 @@ export class AuthService {
             },
         });
 
-        // 15 days trial (or infinite if Master, or 0 if trial already used)
-        let trialExpiresAt = null;
-        let subscriptionStatus: any = 'TRIAL';
+        // 15 days trial expiration
+        const trialExpiresAt = new Date();
+        trialExpiresAt.setDate(trialExpiresAt.getDate() + 15);
 
-        if (isMaster) {
-            subscriptionStatus = 'ACTIVE';
-        } else if (previousTrial) {
-            subscriptionStatus = 'EXPIRED'; // Early block for trial abusers
-        } else {
-            trialExpiresAt = new Date();
-            trialExpiresAt.setDate(trialExpiresAt.getDate() + 15);
-        }
+        // Determine initial status (Trial or Expired if already used)
+        const subscriptionStatus = previousTrial ? 'EXPIRED' : 'TRIAL';
 
         const user = await this.prisma.user.create({
             data: {
@@ -59,7 +54,7 @@ export class AuthService {
                 phoneNumber: dto.phoneNumber,
                 document: dto.document,
                 subscriptionCpf: dto.document,
-                role: isMaster ? 'MASTER' : 'ADMIN',
+                role: 'ADMIN', // Default role for new signups
                 tenantId: tenant.id,
                 trialExpiresAt: trialExpiresAt,
                 subscriptionStatus: subscriptionStatus,
@@ -71,43 +66,43 @@ export class AuthService {
             message: 'Cadastro realizado com sucesso',
             userId: user.id,
             trialExpiresAt: user.trialExpiresAt,
-            isMaster: isMaster,
-            trialAlreadyUsed: !!previousTrial && !isMaster
+            trialAlreadyUsed: !!previousTrial
         };
     }
 
     async validateUser(dto: LoginDto) {
-        console.log(`[AUTH] Tentativa de login para: ${dto.email}`);
-
         const user = await this.prisma.user.findUnique({
             where: { email: dto.email },
         });
 
         if (!user) {
-            console.log(`[AUTH] Usuário não encontrado: ${dto.email}`);
             throw new UnauthorizedException('E-mail ou senha inválidos.');
         }
 
-        console.log(`[AUTH] Usuário encontrado. Comparando senhas...`);
         const isPasswordValid = await bcrypt.compare(dto.password, user.password);
 
         if (!isPasswordValid) {
-            console.log(`[AUTH] Senha inválida para: ${dto.email}`);
-            // console.log(`DEBUG: Senha digitada: ${dto.password}`); // CUIDADO: Apenas para debug temporário se necessário
             throw new UnauthorizedException('E-mail ou senha inválidos.');
         }
 
-        console.log(`[AUTH] Login bem-sucedido: ${dto.email}`);
-        const isMaster = user.email.toLowerCase() === 'waniely2357@gmail.com';
+        // Generate JWT Token
+        const payload = {
+            sub: user.id,
+            email: user.email,
+            role: user.role,
+            tenantId: user.tenantId
+        };
 
         return {
-            message: 'Login realizado com sucesso',
-            userId: user.id,
-            email: user.email,
-            role: isMaster ? 'MASTER' : user.role,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            subscriptionStatus: user.subscriptionStatus
+            access_token: this.jwtService.sign(payload),
+            user: {
+                id: user.id,
+                email: user.email,
+                role: user.role,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                subscriptionStatus: user.subscriptionStatus
+            }
         };
     }
 }

@@ -6,7 +6,7 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 export class ProfileService {
     constructor(private prisma: PrismaService) { }
 
-    async getProfile(userId: string) {
+    async findOne(userId: string) {
         const user = await this.prisma.user.findUnique({
             where: { id: userId },
             select: {
@@ -19,17 +19,19 @@ export class ProfileService {
                 phoneNumber: true,
                 document: true,
                 notificationsEnabled: true,
+                subscriptionStatus: true,
+                role: true,
             },
         });
 
         if (!user) {
-            throw new NotFoundException('Usuário não encontrado');
+            throw new NotFoundException('Usuário não encontrado.');
         }
 
         return user;
     }
 
-    async updateProfile(userId: string, dto: UpdateProfileDto) {
+    async update(userId: string, dto: UpdateProfileDto) {
         return this.prisma.user.update({
             where: { id: userId },
             data: {

@@ -1,14 +1,14 @@
-import { Controller, Get, Post, Body, Delete, Param, UseGuards, ForbiddenException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Delete, Param, UseGuards } from '@nestjs/common';
 import { CoursesService } from './courses.service';
 import { CreateCourseDto } from './dto/create-course.dto';
-import { PrismaService } from '../../prisma/prisma.module';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../../auth/guards/roles.guard';
+import { Roles } from '../../auth/decorators/roles.decorator';
 
 @Controller('courses')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class CoursesController {
-    constructor(
-        private readonly coursesService: CoursesService,
-        private prisma: PrismaService
-    ) { }
+    constructor(private readonly coursesService: CoursesService) { }
 
     @Get()
     async findAll() {
@@ -16,27 +16,14 @@ export class CoursesController {
     }
 
     @Post()
-    async create(@Body() createCourseDto: CreateCourseDto, @Body('userId') userId: string) {
-        await this.checkMaster(userId);
+    @Roles('MASTER')
+    async create(@Body() createCourseDto: CreateCourseDto) {
         return this.coursesService.create(createCourseDto);
     }
 
     @Delete(':id')
-    async remove(@Param('id') id: string, @Body('userId') userId: string) {
-        await this.checkMaster(userId);
+    @Roles('MASTER')
+    async remove(@Param('id') id: string) {
         return this.coursesService.remove(id);
-    }
-
-    private async checkMaster(userId: string) {
-        if (!userId) throw new ForbiddenException('Apenas para administradores Master.');
-
-        const user = await this.prisma.user.findUnique({
-            where: { id: userId },
-            select: { role: true }
-        });
-
-        if (!user || user.role !== 'MASTER') {
-            throw new ForbiddenException('Acesso restrito à conta Master.');
-        }
     }
 }

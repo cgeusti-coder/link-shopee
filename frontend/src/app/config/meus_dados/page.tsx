@@ -4,9 +4,7 @@ import React, { useState, useEffect } from "react"
 import DashboardShell from "../../components/DashboardShell"
 import { User, Phone, FileText, Bell, Save, ShieldCheck } from "lucide-react"
 import { toast } from "sonner"
-import axios from "axios"
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"
+import api from "@/app/lib/api"
 
 export default function ProfilePage() {
     const [loading, setLoading] = useState(true)
@@ -20,17 +18,14 @@ export default function ProfilePage() {
         phoneNumber: "",
         document: "",
         notificationsEnabled: true,
+        role: "USER",
+        subscriptionStatus: "TRIAL"
     })
 
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                // In a real app, we'd get the user ID from the auth context/token
-                // For now, we'll assume there's a way to get the current profile
-                const token = localStorage.getItem("token")
-                const response = await axios.get(`${API_URL}/profile`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                })
+                const response = await api.get("/profile")
                 setProfile(response.data)
             } catch (error) {
                 console.error("Erro ao carregar perfil:", error)
@@ -46,10 +41,7 @@ export default function ProfilePage() {
         e.preventDefault()
         setSaving(true)
         try {
-            const token = localStorage.getItem("token")
-            await axios.patch(`${API_URL}/profile`, profile, {
-                headers: { Authorization: `Bearer ${token}` }
-            })
+            await api.patch("/profile", profile)
             toast.success("Perfil atualizado com sucesso!")
         } catch (error) {
             console.error("Erro ao salvar perfil:", error)
@@ -204,15 +196,20 @@ export default function ProfilePage() {
                             <div className="space-y-4">
                                 <div className="p-4 bg-green-50 rounded-xl border border-green-100">
                                     <div className="flex items-center justify-between">
-                                        <span className="text-xs font-bold text-green-700">Plano Ativo</span>
-                                        <span className="bg-green-200 text-green-800 text-[9px] font-bold px-2 py-0.5 rounded uppercase">Master</span>
+                                        <span className="text-xs font-bold text-green-700">Status</span>
+                                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded uppercase ${profile.subscriptionStatus === 'ACTIVE' ? 'bg-green-200 text-green-800' : 'bg-orange-200 text-orange-800'
+                                            }`}>
+                                            {profile.subscriptionStatus}
+                                        </span>
                                     </div>
-                                    <p className="text-[11px] text-green-600 mt-1">Acesso vitalício e ilimitado.</p>
+                                    <p className="text-[11px] text-green-600 mt-1">
+                                        {profile.role === 'MASTER' ? 'Acesso vitalício e ilimitado.' : 'Sua assinatura está em dia.'}
+                                    </p>
                                 </div>
 
                                 <div className="flex items-center justify-between text-sm py-2 border-b border-gray-50">
                                     <span className="text-gray-500 text-xs">Tipo de Conta</span>
-                                    <span className="font-bold text-xs uppercase">Administrador</span>
+                                    <span className="font-bold text-xs uppercase">{profile.role}</span>
                                 </div>
                                 <div className="flex items-center justify-between text-sm py-2">
                                     <span className="text-gray-500 text-xs">Desde</span>
