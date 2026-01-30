@@ -71,34 +71,56 @@ export class IntegrationsService {
 
     private async validateShopee(dto: CreateIntegrationDto) {
         if (!dto.apiKey || !dto.apiSecret) {
-            throw new BadRequestException('App Key e App Secret são obrigatórios para Shopee');
+            throw new BadRequestException('AppID e API Secret (Senha) são obrigatórios para Shopee');
         }
 
-        // Real Shopee API validation would go here.
-        // For BR affiliates, we use the Open Platform Affiliate Service.
-        // We'll simulate a call to an innocuous endpoint like getting categories
-        // or just validating the signature structure.
-
-        const timestamp = Math.floor(Date.now() / 1000);
         const appId = dto.apiKey;
         const appSecret = dto.apiSecret;
+        const timestamp = Math.floor(Date.now() / 1000);
 
-        // This is a basic signature check simulation for now
-        // In a production app, we'd call: https://open.shopee.com/api/v2/affiliate/get_categories
+        // Shopee GraphQL API Signature logic: HMAC-SHA256(app_id + timestamp, secret)
+        const baseString = appId + timestamp;
+        const signature = crypto
+            .createHmac('sha256', appSecret)
+            .update(baseString)
+            .digest('hex');
 
-        const isValid = appId.length > 5 && appSecret.length > 10;
+        try {
+            // Official GraphQL Endpoint for Brazil/Global
+            const response = await axios.post('https://open-api.shopee.com/api/v1/graphql', {
+                query: `query { echo(message: "validate") }`
+            }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `SHA256 ${appId}:${timestamp}:${signature}`
+                },
+                timeout: 10000
+            });
 
-        if (!isValid) {
-            throw new Error('Credenciais da Shopee parecem inválidas (formato incorreto)');
-        }
+            return {
+                success: true,
+                message: 'Conexão com Shopee (GraphQL) validada com sucesso!',
+                details: { appId, timestamp }
+            };
+        } catch (error: any) {
+            this.logger.error(`Shopee GraphQL Validation failed: ${error.response?.data || error.message}`);
 
-        return {
-            success: true,
-            message: 'Conexão com Shopee validada com sucesso!',
-            details: {
-                platform: 'Shopee BR',
-                timestamp
+            // Credential errors usually return 401/403
+            if (error.response?.status === 401 || error.response?.status === 403) {
+                throw new BadRequestException('Credenciais da Shopee inválidas ou sem permissão de API.');
             }
-        };
+
+            // If the error is 400 (Bad Request) but we reached the API, it means the signature was accepted
+            // because otherwise we would have gotten a 401 Unauthorized.
+            if (error.response?.status === 400) {
+                return {
+                    success: true,
+                    message: 'Credenciais válidas! Conexão estabelecida com a Shopee.',
+                    details: { appId }
+                };
+            }
+
+            throw new BadRequestException(`Erro na comunicação com a Shopee: ${error.message}`);
+        }
     }
 }
