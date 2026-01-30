@@ -15,6 +15,7 @@ export interface PlatformConfig {
     description: string;
     color: string;
     icon: any;
+    logo?: string;
     bgColor: string;
     textColor: string;
 }
@@ -27,7 +28,8 @@ export const PLATFORMS: PlatformConfig[] = [
         color: '#EE4D2D',
         bgColor: 'bg-[#EE4D2D]/10',
         textColor: 'text-[#EE4D2D]',
-        icon: ShopeeLogo
+        icon: ShopeeLogo,
+        logo: '/logos/shopee.png'
     },
     {
         id: 'AMAZON',
@@ -36,7 +38,8 @@ export const PLATFORMS: PlatformConfig[] = [
         color: '#FF9900',
         bgColor: 'bg-[#FF9900]/10',
         textColor: 'text-[#FF9900]',
-        icon: AmazonLogo
+        icon: AmazonLogo,
+        logo: '/logos/amazon.jpg'
     },
     {
         id: 'MERCADO_LIVRE',
@@ -45,7 +48,8 @@ export const PLATFORMS: PlatformConfig[] = [
         color: '#FFE600',
         bgColor: 'bg-[#FFE600]/20',
         textColor: 'text-yellow-700',
-        icon: MercadoLivreLogo
+        icon: MercadoLivreLogo,
+        logo: '/logos/mercadolivre.png'
     },
     {
         id: 'MAGALU',
@@ -54,7 +58,8 @@ export const PLATFORMS: PlatformConfig[] = [
         color: '#0086FF',
         bgColor: 'bg-[#0086FF]/10',
         textColor: 'text-[#0086FF]',
-        icon: MagaluLogo
+        icon: MagaluLogo,
+        logo: '/logos/magalu.jpg'
     },
     {
         id: 'ALIEXPRESS',
@@ -63,7 +68,8 @@ export const PLATFORMS: PlatformConfig[] = [
         color: '#FF4747',
         bgColor: 'bg-[#FF4747]/10',
         textColor: 'text-[#FF4747]',
-        icon: AliExpressLogo
+        icon: AliExpressLogo,
+        logo: '/logos/aliexpress.png'
     },
     {
         id: 'SHEIN',

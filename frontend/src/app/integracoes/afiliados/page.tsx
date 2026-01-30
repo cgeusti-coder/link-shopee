@@ -63,8 +63,16 @@ export default function IntegrationsPage() {
                 </div>
               )}
 
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110 ${platform.bgColor} ${platform.textColor}`}>
-                <platform.icon className="w-6 h-6" />
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110 overflow-hidden ${!platform.logo ? platform.bgColor + ' ' + platform.textColor : ''}`}>
+                {platform.logo ? (
+                  <img
+                    src={platform.logo}
+                    alt={platform.name}
+                    className="w-full h-full object-contain p-1"
+                  />
+                ) : (
+                  <platform.icon className="w-6 h-6" />
+                )}
               </div>
 
               <div className="flex-1">
