@@ -27,7 +27,7 @@ type MenuItem =
     | { label: string; isHeader: true; icon?: undefined; href?: undefined; active?: undefined; tag?: undefined };
 
 const menuItems: MenuItem[] = [
-    { icon: LayoutDashboard, label: "Dashboard", href: "/" },
+    { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
     { label: "GESTÃO", isHeader: true },
     { icon: Box, label: "Integrações", href: "/integracoes/afiliados" },
     { icon: Search, label: "Pesquisa Shopee", href: "/shopee/pesquisa", tag: "NOVO" },

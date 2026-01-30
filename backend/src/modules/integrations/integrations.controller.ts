@@ -1,9 +1,10 @@
-
-import { Controller, Get, Post, Body, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, UseGuards } from '@nestjs/common';
 import { IntegrationsService } from './integrations.service';
 import { CreateIntegrationDto } from './dto/create-integration.dto';
+import { SubscriptionGuard } from '../../auth/guards/subscription.guard';
 
 @Controller('integrations')
+@UseGuards(SubscriptionGuard)
 export class IntegrationsController {
     constructor(private readonly integrationsService: IntegrationsService) { }
 

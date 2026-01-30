@@ -14,6 +14,7 @@ generator client {
 model Tenant {
   id          String   @id @default(uuid())
   name        String
+  slug        String?  @unique
   domain      String?  @unique
   plan        Plan     @default(FREE)
   createdAt   DateTime @default(now())
@@ -45,6 +46,16 @@ model User {
   phone     String?
   document  String?  // CPF/CNPJ
   notificationsEnabled Boolean @default(true)
+
+  trialExpiresAt     DateTime?
+  subscriptionStatus SubscriptionStatus @default(TRIAL)
+}
+
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  EXPIRED
+  CANCELLED
 }
 
 enum Role {

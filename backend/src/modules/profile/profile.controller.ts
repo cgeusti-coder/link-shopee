@@ -1,8 +1,10 @@
-import { Controller, Get, Put, Body, Query } from '@nestjs/common';
+import { Controller, Get, Put, Body, Query, UseGuards } from '@nestjs/common';
 import { ProfileService } from './profile.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { SubscriptionGuard } from '../../auth/guards/subscription.guard';
 
 @Controller('profile')
+@UseGuards(SubscriptionGuard)
 export class ProfileController {
     constructor(private readonly profileService: ProfileService) { }
 
